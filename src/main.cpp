@@ -159,9 +159,9 @@ std::list<SubCommand> build_commands(const ArgumentParser& common)
 
     // install
     auto& install = commands.emplace_back("install", common, [](const ArgumentParser& cmd) {
-        return cmd::run_install({
-            .profile = parse_profile(cmd.get("--profile")),
-        });
+        return cmd::run_install({ .profile = parse_profile(cmd.get("--profile")),
+            .prefix = cmd.get("--prefix"),
+            .bindir = cmd.get("--bindir") });
     });
 
     install.parser.add_description("install binary if exists");
@@ -169,6 +169,14 @@ std::list<SubCommand> build_commands(const ArgumentParser& common)
         .help("build with specific profile")
         .metavar("profile")
         .default_value(std::string { kProfileRelease });
+    install.parser.add_argument("--prefix")
+        .help("install into prefix path")
+        .metavar("prefix")
+        .default_value(std::string { "/usr/local" });
+    install.parser.add_argument("--bindir")
+        .help("name of bin dir under prefix path")
+        .metavar("bindir")
+        .default_value(std::string { "bin" });
 
     // run
     auto& run = commands.emplace_back("run", common, [](const ArgumentParser& cmd) {
