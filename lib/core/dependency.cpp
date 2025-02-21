@@ -40,12 +40,23 @@ Dependency cppship::parse_dep(std::string_view cmake_package, const fs::path& ta
                 boost::trim(line);
                 const auto fields = util::split(line, boost::is_space());
 
-                // set_property(TARGET boost::boost PROPERTY INTERFACE_LINK_LIBRARIES Boost::disable_autolinking APPEND)
+                // set_property(TARGET boost::boost APPEND PROPERTY INTERFACE_LINK_LIBRARIES Boost::disable_autolinking)
                 if (fields.size() < kFieldsInComponentLine) {
                     break;
                 }
 
-                dep.components.emplace_back(fields[4]);
+                // this seems bittle...
+                // Ran into an issue where we expected component to be in field index 4 because
+                // it expected this:
+                // set_property(TARGET boost::boost PROPERTY INTERFACE_LINK_LIBRARIES Boost::disable_autolinking APPEND)
+                // but conan actually produced this:
+                // set_property(TARGET boost::boost APPEND PROPERTY INTERFACE_LINK_LIBRARIES Boost::disable_autolinking)
+                // is there a more file with a more stable format we can parse?
+                // or maybe we can scan fields for one that contains ::
+                std::string component = fields[5];
+                // remove the parenthesis
+                component.pop_back();
+                dep.components.emplace_back(component);
             }
         }
 
